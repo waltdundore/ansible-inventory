@@ -1,55 +1,37 @@
 # ansible-inventory
 
-Host definitions and role assignments for ansible-control.
+Environment-specific host definitions for ansible-control.
 
-## Setup
-
-Use ansible-control setup script:
-
-```bash
-cd ~/git/ansible-control
-./setup.sh
-```
-
-## Assign Roles
-
-Edit `hosts.yml` and place hosts in role groups:
-
-```yaml
-all:
-  vars:
-    ansible_user: your_username
-  children:
-    docker:              # Gets Docker role
-      hosts:
-        server1.example.com:
-    nfs:                 # Gets NFS role
-      hosts:
-        storage.example.com:
-```
-
-**Available role groups:**
-- `docker` - Docker engine
-- `nfs` - NFS client
-- All hosts get `common` role automatically
-
-**Multiple roles:**
-```yaml
-docker:
-  hosts:
-    server1.example.com:
-nfs:
-  hosts:
-    server1.example.com:  # Gets both roles
-```
-
-## Branches
+## Branch Structure
 
 - `dev` - Development hosts
 - `prod` - Production hosts
-- `workstation` - Local machine
+- `workstation` - Local workstation
 
-## Files
+## Setup
 
-- `*/hosts.yml.example` - Template (tracked in git)
-- `*/hosts.yml` - Your hosts (gitignored)
+```bash
+cd ~/git/ansible-inventory
+git checkout dev
+cp dev/hosts.yml.example dev/hosts.yml
+vim dev/hosts.yml
+```
+
+Update `ansible_user` and hostnames.
+
+## Usage
+
+Link from ansible-control:
+
+```bash
+cd ~/git/ansible-control
+ln -s ../ansible-inventory/dev inventory
+```
+
+## File Structure
+
+```
+dev/hosts.yml          # Dev hosts (gitignored)
+prod/hosts.yml         # Prod hosts (gitignored)
+workstation/hosts.yml  # Workstation (gitignored)
+```
