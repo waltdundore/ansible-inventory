@@ -1,0 +1,52 @@
+---
+# ==============================================================================
+# Inventory File Example
+# ==============================================================================
+# This file defines hosts and connection settings for your environment
+#
+# SETUP INSTRUCTIONS:
+#   1. Copy this file to: inventory/dev/hosts.yml (for development)
+#                     or: inventory/prod/hosts.yml (for production)
+#   2. Replace 'your_username' with your actual SSH username
+#   3. Replace example hostnames with your actual hosts
+#   4. The Makefile automatically selects inventory based on git branch
+#
+# IMPORTANT:
+#   - Inventory files are gitignored (environment-specific)
+#   - ansible_user defined here becomes common_user in roles
+#   - This is the ONLY place where your username should be hardcoded
+
+all:
+  vars:
+    # SSH connection settings for all hosts
+    ansible_connection: ssh
+    
+    # YOUR USERNAME - Replace with your actual SSH username
+    # This value is used by roles as {{ ansible_user }} or {{ common_user }}
+    ansible_user: your_username
+  
+  children:
+    # Vagrant VMs (local testing)
+    vagrant:
+      vars:
+        ansible_connection: local  # Use local connection for Vagrant
+      hosts:
+        localhost:
+    
+    # x86_64 servers and workstations
+    x86:
+      hosts:
+        hostname.example.com:
+        # Add more x86 hosts here
+    
+    # Raspberry Pi 4 devices
+    rpi4:
+      hosts:
+        rpi4-01.example.com:
+        # Add more Pi 4 hosts here
+    
+    # Raspberry Pi 5 devices
+    rpi5:
+      hosts:
+        rpi5-01.example.com:
+        # Add more Pi 5 hosts here

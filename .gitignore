@@ -1,0 +1,9 @@
+# Ignore actual inventory files (environment-specific)
+dev/hosts.yml
+prod/hosts.yml
+workstation/hosts.yml
+
+# Keep group_vars
+!dev/group_vars/
+!prod/group_vars/
+!workstation/group_vars/
