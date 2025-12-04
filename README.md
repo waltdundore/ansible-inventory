@@ -1,6 +1,6 @@
 # ansible-inventory
 
-Host definitions for ansible-control. Defines which servers to configure.
+Host definitions for ansible-control. Defines which servers to configure and which roles they get.
 
 ## What This Repository Does
 
@@ -18,40 +18,57 @@ cd ~/git/ansible-control
 ./setup.sh
 ```
 
-## Manual Setup (if needed)
+## Assigning Roles to Hosts
 
-```bash
-cd ~/git/ansible-inventory
-git checkout dev  # or prod, or workstation
+Roles are assigned by **group membership**:
 
-# Create inventory file
-cd dev
-cp hosts.yml.example hosts.yml
-nano hosts.yml  # Edit with your hosts
-```
-
-## Editing Inventory
-
-**Example inventory file:**
 ```yaml
 ---
 all:
   vars:
-    ansible_connection: ssh
-    ansible_user: your_username  # ← Your SSH username
+    ansible_user: your_username
+
   children:
     x86:
-      hosts:
-        server1.example.com:     # ← Your server
-        server2.example.com:     # ← Add more servers
-    rpi4:
-      hosts:
-        pi1.example.com:         # ← Raspberry Pi hosts
+      children:
+        docker:              # Hosts here get Docker role
+          hosts:
+            server1.example.com:
+            server2.example.com:
+        nfs:                 # Hosts here get NFS role
+          hosts:
+            storage.example.com:
+```
+
+**Available role groups:**
+- `docker` - Installs Docker engine
+- `nfs` - Configures NFS client
+- All hosts automatically get `common` role
+
+**Multiple roles:**
+```yaml
+docker:
+  hosts:
+    server1.example.com:
+nfs:
+  hosts:
+    server1.example.com:  # Gets both docker and nfs roles
+```
+
+## Editing Inventory
+
+```bash
+cd ~/git/ansible-inventory
+git checkout dev
+cd dev
+cp hosts.yml.example hosts.yml
+nano hosts.yml
 ```
 
 **What to change:**
-- `ansible_user` - Your SSH username on the servers
-- `server1.example.com` - Replace with your actual hostnames or IP addresses
+- `ansible_user` - Your SSH username
+- `server1.example.com` - Your actual hostnames/IPs
+- Group membership - Which roles each host gets
 
 ## File Structure
 
