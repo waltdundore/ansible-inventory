@@ -1,0 +1,14 @@
+---
+all:
+  vars:
+    ansible_connection: ssh
+    ansible_user: your_username
+  children:
+    x86:
+      hosts:
+        hostname.example.com:
+    rpi4:
+      hosts:
+    rpi5:
+      hosts:
+
