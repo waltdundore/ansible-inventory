@@ -2,8 +2,10 @@
 all:
   vars:
     ansible_connection: local
+
   children:
     workstation:
-      hosts:
-        localhost:
-
+      children:
+        docker:
+          hosts:
+            localhost:
