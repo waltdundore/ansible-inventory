@@ -1,84 +1,109 @@
 # ansible-inventory
 
-Environment-specific host definitions for ansible-control project.
+Host definitions for ansible-control. Defines which servers to configure.
 
-## Repository Dependencies
+## What This Repository Does
 
-**This repository is part of a three-repository system:**
+Stores the list of servers/hosts for each environment:
+- **dev** - Development/testing servers
+- **prod** - Production servers
+- **workstation** - Local machine
 
-1. **[ansible-control](https://github.com/waltdundore/ansible-control)** - Main playbooks and roles
-2. **THIS REPO** - Environment-specific host definitions
-3. **[ansible-config](https://github.com/waltdundore/ansible-config)** - Central configuration file
+## Setup
 
-### Setup
+**Don't clone this repo alone** - Use the setup script in ansible-control:
 
 ```bash
-# Clone all three repositories
-cd ~/git
-git clone git@github.com:waltdundore/ansible-control.git
-git clone git@github.com:waltdundore/ansible-inventory.git
-git clone git@github.com:waltdundore/ansible-config.git
-
-# Create symlinks in ansible-control
-cd ansible-control
-ln -s ../ansible-inventory inventory
-ln -s ../ansible-config/config.yml config.yml
+cd ~/git/ansible-control
+./setup.sh
 ```
 
-## Structure
+## Manual Setup (if needed)
+
+```bash
+cd ~/git/ansible-inventory
+git checkout dev  # or prod, or workstation
+
+# Create inventory file
+cd dev
+cp hosts.yml.example hosts.yml
+nano hosts.yml  # Edit with your hosts
+```
+
+## Editing Inventory
+
+**Example inventory file:**
+```yaml
+---
+all:
+  vars:
+    ansible_connection: ssh
+    ansible_user: your_username  # ← Your SSH username
+  children:
+    x86:
+      hosts:
+        server1.example.com:     # ← Your server
+        server2.example.com:     # ← Add more servers
+    rpi4:
+      hosts:
+        pi1.example.com:         # ← Raspberry Pi hosts
+```
+
+**What to change:**
+- `ansible_user` - Your SSH username on the servers
+- `server1.example.com` - Replace with your actual hostnames or IP addresses
+
+## File Structure
 
 ```
 ansible-inventory/
-├── dev/              # Development environment
-│   └── hosts.yml    # Dev hosts (gitignored)
-├── prod/            # Production environment
-│   ├── hosts.yml    # Prod hosts (gitignored)
-│   └── group_vars/  # Production group variables
-├── workstation/     # Workstation environment
-│   └── hosts.yml    # Workstation hosts (gitignored)
-├── hosts.yml.example # Template for creating inventory
-└── vagrant.py       # Dynamic inventory for Vagrant VMs
+├── dev/
+│   ├── hosts.yml.example    # Template
+│   └── hosts.yml            # Your hosts (gitignored)
+├── prod/
+│   ├── hosts.yml.example
+│   └── hosts.yml            # Your hosts (gitignored)
+└── workstation/
+    ├── hosts.yml.example
+    └── hosts.yml            # Your hosts (gitignored)
+```
+
+## Why Are hosts.yml Files Gitignored?
+
+Your inventory files contain:
+- Server hostnames/IPs
+- Usernames
+- Environment-specific information
+
+These are **private** and should not be committed to git.
+
+## Branches
+
+- **dev** - Development environment hosts
+- **prod** - Production environment hosts
+- **workstation** - Local workstation configuration
+
+Switch branches to change environments:
+```bash
+git checkout prod
+```
+
+Or use the setup script in ansible-control:
+```bash
+cd ~/git/ansible-control
+./setup.sh  # Select environment
 ```
 
 ## Usage
 
-### Creating Inventory Files
+This repo is used via symlink from ansible-control:
 
-1. Copy the example to your environment:
 ```bash
-cp hosts.yml.example dev/hosts.yml
+cd ~/git/ansible-control
+ln -s ../ansible-inventory/dev inventory
+make deploy  # Uses inventory/dev/hosts.yml
 ```
 
-2. Edit and replace:
-   - `your_username` with your SSH username
-   - Example hostnames with your actual hosts
+## Getting Help
 
-3. Inventory files are gitignored (environment-specific)
-
-### Inventory Groups
-
-- **vagrant**: Local Vagrant VMs (auto-detected)
-- **x86**: Standard x86_64 servers and workstations
-- **rpi4**: Raspberry Pi 4 devices
-- **rpi5**: Raspberry Pi 5 devices
-- **workstation**: Local workstation (localhost)
-
-## Branch Strategy
-
-All three repositories have matching branches:
-- `dev` - Development environment
-- `prod` - Production environment
-- `workstation` - Workstation setup
-
-**IMPORTANT:** Keep all three repos on the same branch when working.
-
-## Dynamic Inventory
-
-The `vagrant.py` script automatically detects running Vagrant VMs and adds them to the `vagrant` group with local connection.
-
-## Important Notes
-
-- Inventory files (`*/hosts.yml`) are gitignored
-- Only example file and group_vars are tracked
-- Each environment manages inventory separately
-- Must be symlinked into ansible-control to function
+See ansible-control README and SETUP.md for complete instructions.
