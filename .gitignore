@@ -28,8 +28,4 @@ Thumbs.db
 *.bak
 *.backup
 *.log
-Makefile.dev
 
-# Developer Makefiles
-Makefile.dev
-Makefile.client
