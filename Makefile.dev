@@ -1,0 +1,123 @@
+# ==============================================================================
+# Ahab Inventory - Makefile (Developer Version)
+# ==============================================================================
+# Automated Host Administration & Build - Inventory Management
+
+.PHONY: help sync status publish promote release
+
+help:
+	@echo "Ahab Inventory - Available Commands:"
+	@echo ""
+	@echo "  make help      - Show this help message"
+	@echo "  make sync      - Pull latest changes from git"
+	@echo "  make status    - Show git status"
+	@echo "  make publish   - Commit and push changes"
+	@echo "  make promote   - Merge dev → prod"
+	@echo "  make release   - Create tagged release"
+	@echo ""
+
+sync:
+	@echo "Syncing ansible-inventory..."
+	@git fetch origin
+	@git pull origin $$(git branch --show-current)
+	@echo "✓ Synced with remote"
+
+status:
+	@git status
+
+publish:
+	@read -p "Commit message: " msg; \
+	git add -A; \
+	if git diff --cached --quiet; then \
+		echo "No changes to commit"; \
+	else \
+		git commit -m "$$msg" && \
+		git push origin $$(git branch --show-current) && \
+		echo "✓ Published to $$(git branch --show-current)"; \
+	fi
+
+promote:
+	@BRANCH=$$(git rev-parse --abbrev-ref HEAD); \
+	if [ "$$BRANCH" != "dev" ]; then \
+		echo "Error: Must be on dev branch (currently on $$BRANCH)"; \
+		exit 1; \
+	fi; \
+	if ! git diff-index --quiet HEAD --; then \
+		echo "Error: You have uncommitted changes"; \
+		git status --short; \
+		exit 1; \
+	fi; \
+	echo "Merging dev → prod..."; \
+	git checkout prod && \
+	git merge dev --no-edit && \
+	git push origin prod && \
+	git checkout dev && \
+	echo "✓ Promoted dev to prod"
+
+release:
+	@BRANCH=$$(git rev-parse --abbrev-ref HEAD); \
+	if [ "$$BRANCH" != "dev" ]; then \
+		echo "Error: Must be on dev branch (currently on $$BRANCH)"; \
+		exit 1; \
+	fi; \
+	if ! git diff-index --quiet HEAD --; then \
+		echo "Error: You have uncommitted changes"; \
+		git status --short; \
+		exit 1; \
+	fi; \
+	echo "=========================================="; \
+	echo "Ahab Inventory - Create Release"; \
+	echo "=========================================="; \
+	echo ""; \
+	read -p "Version (e.g., v0.0.2-alpha): " version; \
+	if [ -z "$$version" ]; then \
+		echo "Error: Version required"; \
+		exit 1; \
+	fi; \
+	LAST_TAG=$$(git describe --tags --abbrev=0 2>/dev/null || echo ""); \
+	if [ -z "$$LAST_TAG" ]; then \
+		echo ""; \
+		echo "No previous releases found"; \
+		echo "This will squash ALL history"; \
+	else \
+		COMMIT_COUNT=$$(git rev-list $$LAST_TAG..HEAD --count); \
+		echo ""; \
+		echo "Last release: $$LAST_TAG"; \
+		echo "Commits since: $$COMMIT_COUNT"; \
+	fi; \
+	echo ""; \
+	echo "This will:"; \
+	echo "  1. Merge dev to prod"; \
+	echo "  2. Squash commits since last release"; \
+	echo "  3. Tag as $$version"; \
+	echo "  4. Push to GitHub"; \
+	echo ""; \
+	read -p "Continue? [y/N] " confirm; \
+	if [ "$$confirm" != "y" ] && [ "$$confirm" != "Y" ]; then \
+		echo "Cancelled"; \
+		exit 0; \
+	fi; \
+	echo "→ Merging dev to prod..."; \
+	git checkout prod && git merge dev --no-edit && \
+	echo "→ Squashing commits since last release..."; \
+	if [ -n "$$LAST_TAG" ]; then \
+		git reset --soft $$LAST_TAG; \
+	else \
+		FIRST_COMMIT=$$(git rev-list --max-parents=0 HEAD); \
+		git reset --soft $$FIRST_COMMIT; \
+	fi && \
+	git add -A && \
+	git commit -m "Release $$version" && \
+	echo "→ Tagging $$version..."; \
+	git tag -a "$$version" -m "Ahab Inventory $$version" && \
+	echo ""; \
+	read -p "Push to GitHub? [y/N] " push; \
+	if [ "$$push" = "y" ] || [ "$$push" = "Y" ]; then \
+		git push -f origin prod && \
+		git push origin "$$version" && \
+		git checkout dev && git reset --hard prod && git push -f origin dev && \
+		echo "✓ Released $$version"; \
+	else \
+		echo "Push cancelled"; \
+		git checkout dev; \
+	fi
