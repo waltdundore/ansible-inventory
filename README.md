@@ -57,5 +57,5 @@ Automated Host Administration & Build
 Website: [ahabsoftware.com](https://ahabsoftware.com)  
 GitHub: [github.com/waltdundore](https://github.com/waltdundore)
 
-© 2024 Ahab Software, LLC. All rights reserved.
+Licensed under CC BY-NC 4.0 - See LICENSE file
 
