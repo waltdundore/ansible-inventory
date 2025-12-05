@@ -1,0 +1,102 @@
+# ==============================================================================
+# Ahab Inventory - Makefile
+# ==============================================================================
+# Automated Host Administration & Build - Inventory Management
+#
+# Usage:
+#   make help      - Show available commands
+#   make sync      - Pull latest changes from git
+#   make status    - Show git status
+#   make publish   - Commit and push changes
+
+.PHONY: help sync status publish promote release
+
+help:
+	@echo "Ahab Inventory - Available Commands:"
+	@echo ""
+	@echo "  make help      - Show this help message"
+	@echo "  make sync      - Pull latest changes from git"
+	@echo "  make status    - Show git status"
+	@echo "  make publish   - Commit and push changes"
+	@echo "  make promote   - Merge dev → prod"
+	@echo "  make release   - Create tagged release"
+	@echo ""
+
+sync:
+	@echo "Syncing ansible-inventory..."
+	@git fetch origin
+	@git pull origin $(shell git branch --show-current)
+	@echo "✓ Synced with remote"
+
+status:
+	@git status
+
+publish:
+	@read -p "Commit message: " msg; \
+	git add -A; \
+	if git diff --cached --quiet; then \
+		echo "No changes to commit"; \
+	else \
+		git commit -m "$$msg" && \
+		git push origin $(shell git branch --show-current) && \
+		echo "✓ Published to $(shell git branch --show-current)"; \
+	fi
+
+promote:
+	@BRANCH=$$(git rev-parse --abbrev-ref HEAD); \
+	if [ "$$BRANCH" != "dev" ]; then \
+		echo "Error: Must be on dev branch (currently on $$BRANCH)"; \
+		exit 1; \
+	fi; \
+	if ! git diff-index --quiet HEAD --; then \
+		echo "Error: You have uncommitted changes"; \
+		git status --short; \
+		exit 1; \
+	fi; \
+	echo "Merging dev → prod..."; \
+	git checkout prod && \
+	git merge dev --no-edit && \
+	git push origin prod && \
+	git checkout dev && \
+	echo "✓ Promoted dev to prod"
+
+release:
+	@BRANCH=$$(git rev-parse --abbrev-ref HEAD); \
+	if [ "$$BRANCH" != "dev" ]; then \
+		echo "Error: Must be on dev branch (currently on $$BRANCH)"; \
+		exit 1; \
+	fi; \
+	if ! git diff-index --quiet HEAD --; then \
+		echo "Error: You have uncommitted changes"; \
+		git status --short; \
+		exit 1; \
+	fi; \
+	echo "=========================================="; \
+	echo "Ahab Inventory - Create Release"; \
+	echo "=========================================="; \
+	echo ""; \
+	read -p "Version (e.g., v0.0.1-alpha): " version; \
+	if [ -z "$$version" ]; then \
+		echo "Error: Version required"; \
+		exit 1; \
+	fi; \
+	echo ""; \
+	echo "This will squash history and tag as $$version"; \
+	read -p "Continue? [y/N] " confirm; \
+	if [ "$$confirm" != "y" ] && [ "$$confirm" != "Y" ]; then \
+		echo "Cancelled"; \
+		exit 0; \
+	fi; \
+	git checkout prod && git merge dev --no-edit && \
+	git checkout --orphan temp-branch && \
+	git add -A && \
+	git commit -m "Release $$version" && \
+	git branch -D prod && git branch -m prod && \
+	git tag -a "$$version" -m "Ahab Inventory $$version" && \
+	read -p "Push to GitHub? [y/N] " push; \
+	if [ "$$push" = "y" ] || [ "$$push" = "Y" ]; then \
+		git push -f origin prod && \
+		git push origin "$$version" && \
+		git checkout dev && git reset --hard prod && git push -f origin dev && \
+		echo "✓ Released $$version"; \
+	fi

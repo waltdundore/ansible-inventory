@@ -1,0 +1,27 @@
+---
+all:
+  vars:
+    ansible_connection: ssh
+    ansible_user: your_username
+
+  children:
+    # x86 servers
+    x86:
+      children:
+        docker:
+          hosts:
+            server1.example.com:
+            server2.example.com:
+
+    # Raspberry Pi 4
+    rpi4:
+      children:
+        docker:
+          hosts:
+            pi1.example.com:
+
+    # Raspberry Pi 5
+    rpi5:
+      children:
+        docker:
+          hosts:

@@ -1,0 +1,41 @@
+# ==============================================================================
+# Ansible Inventory - Workstation Hosts (Example)
+# ==============================================================================
+# This is an example inventory file for LOCAL WORKSTATION.
+# Copy and customize for your local machine.
+#
+# Setup:
+#   1. Copy this file: cp hosts.yml.example hosts.yml
+#   2. Edit the file: vim hosts.yml
+#   3. Set to localhost or your workstation hostname
+#   4. Set your SSH username
+#
+# Required Changes:
+#   - ansible_user: Set to your local username
+#   - Hostname: Use localhost or your workstation hostname
+#
+# Common Use Cases:
+#   - Configure your local development machine
+#   - Install Docker on your workstation
+#   - Set up development tools
+#
+# Documentation: See ~/git/ansible-control/README.md
+
+---
+all:
+  vars:
+    ansible_connection: local      # ← Local connection (no SSH needed)
+    ansible_user: your_username    # ← CHANGE: Your local username
+
+  children:
+    # Local Workstation
+    workstation:
+      hosts:
+        localhost:                 # ← Your local machine
+          ansible_connection: local
+
+    # Or use your workstation hostname
+    # workstation:
+    #   hosts:
+    #     my-laptop.local:
+    #       ansible_connection: ssh

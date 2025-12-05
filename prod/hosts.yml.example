@@ -1,0 +1,57 @@
+# ==============================================================================
+# Ansible Inventory - Production Hosts (Example)
+# ==============================================================================
+# This is an example inventory file for PRODUCTION servers.
+# Copy and customize for your production environment.
+#
+# Setup:
+#   1. Copy this file: cp hosts.yml.example hosts.yml
+#   2. Edit the file: vim hosts.yml
+#   3. Replace example.com with your actual production hostnames
+#   4. Set your SSH username
+#
+# Required Changes:
+#   - ansible_user: Set to your SSH username for production servers
+#   - Hostnames: Replace example.com with your production server hostnames
+#
+# Security Notes:
+#   - hosts.yml is gitignored - your real hostnames stay private
+#   - Use strong SSH keys for production
+#   - Consider using Ansible Vault for sensitive variables
+#
+# Documentation: See ~/git/ansible-control/README.md
+
+---
+all:
+  vars:
+    ansible_connection: ssh
+    ansible_user: your_username  # ← CHANGE: Your SSH username for production
+
+  children:
+    # x86 Production Servers
+    x86:
+      children:
+        docker:
+          hosts:
+            prod-web1.example.com:     # ← CHANGE: Your production web server
+            prod-web2.example.com:     # ← ADD: Additional web servers
+            prod-app1.example.com:     # ← CHANGE: Your production app server
+
+    # Raspberry Pi 4 (if used in production)
+    rpi4:
+      children:
+        docker:
+          hosts:
+            prod-pi1.example.com:      # ← CHANGE: Your production Pi hostname
+
+    # Raspberry Pi 5 (if used in production)
+    rpi5:
+      children:
+        docker:
+          hosts:
+            prod-pi5.example.com:      # ← CHANGE: Your production Pi 5 hostname
+
+    # NFS Clients (servers that mount NFS storage)
+    nfs:
+      hosts:
+        prod-storage.example.com:      # ← CHANGE: Your production NFS client
